@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Nexaris Travel crafts futuristic luxury journeys with intelligent planning and concierge-grade service." />
+    <title>Nexaris Travel | Intelligent Luxury Journeys</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="module" src="./main.js"></script>
+  </head>
+  <body>
+    <nav class="nav" aria-label="Main navigation">
+      <a class="brand" href="#top" aria-label="Nexaris Travel home"><span class="brand-mark">✈</span>Nexaris Travel</a>
+      <div class="nav-links">
+        <a href="#destinations">Destinations</a><a href="#method">Method</a><a href="#contact">Concierge</a>
+      </div>
+      <a class="nav-cta" href="#contact">Plan a journey</a>
+    </nav>
+    <main>
+      <section id="top" class="hero section-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">✦ Intelligent luxury travel</p>
+          <h1>Extraordinary journeys, orchestrated with precision.</h1>
+          <p class="hero-lede">Nexaris Travel blends itinerary intelligence with expert human concierge care to craft seamless, high-touch escapes for curious travelers.</p>
+          <div class="hero-actions"><a class="button primary" href="#contact">Start planning →</a><a class="button secondary" href="#destinations">Explore trips</a></div>
+          <div class="stats" aria-label="Nexaris Travel highlights">
+            <div><strong>42</strong><span>curated countries</span></div><div><strong>18k+</strong><span>traveler moments planned</span></div><div><strong>4.9/5</strong><span>average guest rating</span></div>
+          </div>
+        </div>
+        <div class="hero-card" aria-label="Featured itinerary card"><div class="hero-image"></div><div class="floating-card top-card">◎ Live route intelligence</div><div class="floating-card bottom-card">✓ 24/7 concierge cover</div></div>
+      </section>
+      <section class="trust-strip" aria-label="Service promises"><span>◷ Flexible schedules</span><span>● Private local hosts</span><span>⌖ Door-to-door logistics</span><span>★ Boutique stays</span></section>
+      <section id="destinations" class="section destinations">
+        <div class="section-heading"><p class="eyebrow">Featured escapes</p><h2>Signature journeys ready to personalize.</h2><p>Begin with a proven route, then tune every detail around your tastes, season, and travel rhythm.</p></div>
+        <div class="cards" id="destinationCards"></div>
+      </section>
+      <section id="method" class="section method section-grid">
+        <div><p class="eyebrow">The Nexaris method</p><h2>Designed by data. Refined by people.</h2><p>Our platform narrows timing, routing, and preference variables into a coherent journey, while travel designers add taste, access, and judgment.</p></div>
+        <div class="timeline">
+          <div class="timeline-item"><span>01</span><div><h3>Profile your pace</h3><p>Share your style, budget, mobility needs, culinary preferences, and dream-list moments.</p></div></div>
+          <div class="timeline-item"><span>02</span><div><h3>Generate the route</h3><p>Planning intelligence balances flight paths, weather, events, rest time, and hidden gems.</p></div></div>
+          <div class="timeline-item"><span>03</span><div><h3>Travel with backup</h3><p>A human concierge monitors every booking and adjusts plans before friction reaches you.</p></div></div>
+        </div>
+      </section>
+      <section id="contact" class="section cta-panel">
+        <div><p class="eyebrow">Concierge intake</p><h2>Tell us where your next story starts.</h2><p>Receive a tailored concept within two business days, including route logic, stay recommendations, and a transparent estimate.</p></div>
+        <form class="lead-form" aria-label="Travel planning inquiry"><label>Destination idea<input required type="text" placeholder="e.g. Japan, Patagonia, everywhere" /></label><label>Travel window<input required type="text" placeholder="e.g. October 2026, 10 nights" /></label><label>Email<input required type="email" placeholder="you@example.com" /></label><button type="submit">Request itinerary →</button><p class="form-note" role="status" aria-live="polite"></p></form>
+      </section>
+    </main>
+  </body>
+</html>
