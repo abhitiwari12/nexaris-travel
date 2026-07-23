@@ -1,0 +1,599 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RoleName {
+  TRAVELER
+  AGENT
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum BookingStatus {
+  DRAFT
+  PENDING_PAYMENT
+  CONFIRMED
+  TICKETED
+  CHECKED_IN
+  COMPLETED
+  CANCELLED
+  REFUND_REQUESTED
+  REFUND_APPROVED
+  REFUND_REJECTED
+  REFUNDED
+  EXPIRED
+  FAILED
+}
+
+enum PaymentStatus {
+  PENDING
+  AUTHORIZED
+  CAPTURED
+  FAILED
+  REFUNDED
+}
+
+enum TripType {
+  ONE_WAY
+  ROUND_TRIP
+  MULTI_CITY
+}
+
+enum CabinClass {
+  ECONOMY
+  PREMIUM_ECONOMY
+  BUSINESS
+  FIRST
+}
+
+enum NotificationChannel {
+  EMAIL
+  SMS
+  PUSH
+  IN_APP
+}
+
+model User {
+  id              String             @id @default(uuid())
+  email           String             @unique
+  passwordHash    String?
+  emailVerifiedAt DateTime?
+  firstName       String
+  lastName        String
+  avatarUrl       String?
+  googleId        String?
+  roles           UserRole[]
+  sessions        Session[]
+  refreshTokens   RefreshToken[]
+  bookings        Booking[]
+  savedSearches   SavedSearch[]
+  savedTrips      SavedTrip[]
+  conversations   AiConversation[]
+  preferences     TravelPreference?
+  auditLogs       AuditLog[]
+  paymentMethods  SavedPaymentMethod[]
+  notificationSettings NotificationSetting?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+}
+
+model Role {
+  id          String       @id @default(uuid())
+  name        RoleName     @unique
+  description String?
+  permissions Permission[]
+  users       UserRole[]
+}
+
+model Permission {
+  id      String @id @default(uuid())
+  action  String
+  subject String
+  roles   Role[]
+
+  @@unique([action, subject])
+}
+
+model UserRole {
+  userId     String
+  roleId     String
+  assignedAt DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role       Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+}
+
+model Session {
+  id        String    @id @default(uuid())
+  userId    String
+  userAgent String?
+  ipAddress String?
+  refreshTokenHash String?
+  expiresAt DateTime
+  revokedAt DateTime?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String
+  sessionId String?
+  tokenHash String    @unique
+  replacedByTokenId String?
+  expiresAt DateTime
+  revokedAt DateTime?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(uuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  consumedAt DateTime?
+  createdAt DateTime @default(now())
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  consumedAt DateTime?
+  createdAt DateTime @default(now())
+}
+
+model NotificationSetting {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  email     Boolean  @default(true)
+  sms       Boolean  @default(false)
+  push      Boolean  @default(true)
+  marketing Boolean  @default(false)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  updatedAt DateTime @updatedAt
+}
+
+model SavedPaymentMethod {
+  id              String   @id @default(uuid())
+  userId          String
+  provider        String
+  providerMethodId String
+  brand           String?
+  last4           String
+  expMonth        Int
+  expYear         Int
+  isDefault       Boolean  @default(false)
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+}
+
+model Flight {
+  id           String        @id @default(uuid())
+  airlineCode  String
+  flightNumber String
+  origin       String
+  destination  String
+  departureAt  DateTime
+  arrivalAt    DateTime
+  aircraft     String?
+  offers       FlightOffer[]
+
+  @@index([origin, destination, departureAt])
+}
+
+model FlightOffer {
+  id              String        @id @default(uuid())
+  provider        String
+  providerOfferId String        @unique
+  tripType        TripType
+  cabin           CabinClass
+  currency        String
+  baseFare        Decimal
+  taxes           Decimal
+  totalFare       Decimal
+  seatsRemaining  Int?
+  fareRules       Json?
+  baggage         Json?
+  expiresAt       DateTime
+  flightId        String
+  flight          Flight        @relation(fields: [flightId], references: [id])
+  bookings        Booking[]
+  savedSearches   SavedSearch[]
+  createdAt       DateTime      @default(now())
+}
+
+model Booking {
+  id           String        @id @default(uuid())
+  reference    String        @unique
+  userId       String
+  offerId      String
+  status       BookingStatus @default(DRAFT)
+  contactEmail String
+  contactPhone String
+  passengers   Passenger[]
+  bookingPassengers BookingPassenger[]
+  seatAssignments SeatAssignment[]
+  baggageSelections BaggageSelection[]
+  ancillarySelections AncillarySelection[]
+  timeline BookingTimeline[]
+  statusHistory BookingStatusHistory[]
+  bookingAuditLogs BookingAuditLog[]
+  pnr Pnr?
+  tickets Ticket[]
+  boardingPasses BoardingPass[]
+  payments     Payment[]
+  invoices     Invoice[]
+  user         User          @relation(fields: [userId], references: [id])
+  offer        FlightOffer   @relation(fields: [offerId], references: [id])
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Passenger {
+  id             String   @id @default(uuid())
+  bookingId      String
+  firstName      String
+  lastName       String
+  dateOfBirth    DateTime
+  nationality    String
+  passportNumber String?
+  passengerType  String
+  booking        Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+}
+
+model Payment {
+  id                String        @id @default(uuid())
+  bookingId         String
+  provider          String
+  providerPaymentId String?
+  status            PaymentStatus
+  amount            Decimal
+  currency          String
+  receiptUrl        String?
+  metadata          Json?
+  booking           Booking       @relation(fields: [bookingId], references: [id])
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+}
+
+model Invoice {
+  id        String   @id @default(uuid())
+  bookingId String
+  number    String   @unique
+  total     Decimal
+  currency  String
+  pdfUrl    String?
+  booking   Booking  @relation(fields: [bookingId], references: [id])
+  issuedAt  DateTime @default(now())
+}
+
+model Notification {
+  id        String              @id @default(uuid())
+  userId    String
+  channel   NotificationChannel
+  subject   String
+  body      String
+  readAt    DateTime?
+  createdAt DateTime            @default(now())
+}
+
+model SavedSearch {
+  id         String       @id @default(uuid())
+  userId     String
+  offerId    String?
+  name       String
+  criteria   Json
+  priceAlert Decimal?
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  offer      FlightOffer? @relation(fields: [offerId], references: [id])
+  createdAt  DateTime     @default(now())
+}
+
+model SavedTrip {
+  id          String   @id @default(uuid())
+  userId      String
+  title       String
+  destination String
+  startsAt    DateTime?
+  endsAt      DateTime?
+  itinerary   Json
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AiConversation {
+  id        String        @id @default(uuid())
+  userId    String
+  title     String
+  memory    Json
+  messages  ChatMessage[]
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+model ChatMessage {
+  id               String         @id @default(uuid())
+  conversationId   String
+  role             String
+  content          String
+  structuredOutput Json?
+  conversation     AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  createdAt        DateTime       @default(now())
+}
+
+model TravelPreference {
+  id                 String     @id @default(uuid())
+  userId             String     @unique
+  homeAirport        String?
+  budgetMin          Decimal?
+  budgetMax          Decimal?
+  cabin              CabinClass @default(ECONOMY)
+  interests          String[]
+  dietaryNeeds       String[]
+  accessibilityNeeds String[]
+  user               User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  updatedAt          DateTime   @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  action    String
+  entity    String
+  entityId  String?
+  metadata  Json?
+  ipAddress String?
+  user      User?    @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model AdminActivity {
+  id          String   @id @default(uuid())
+  adminUserId String
+  action      String
+  target      String
+  metadata    Json?
+  createdAt   DateTime @default(now())
+}
+
+model Airport {
+  id        String   @id @default(uuid())
+  iataCode  String   @unique
+  icaoCode  String?
+  name      String
+  city      String
+  country   String
+  timezone  String
+  latitude  Float
+  longitude Float
+  popularity Int     @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Airline {
+  id        String   @id @default(uuid())
+  iataCode  String   @unique
+  icaoCode  String?
+  name      String
+  logoUrl   String?
+  alliance  String?
+  fleetInfo Json?
+  rating    Decimal?
+  country   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model FlightSearch {
+  id             String   @id @default(uuid())
+  userId         String?
+  searchHash     String   @unique
+  criteria       Json
+  resultCount    Int
+  cheapestPrice  Decimal?
+  fastestMinutes Int?
+  provider       String
+  latencyMs      Int
+  createdAt      DateTime @default(now())
+}
+
+model FlightCache {
+  id        String   @id @default(uuid())
+  cacheKey  String   @unique
+  payload   Json
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model TrackedRoute {
+  id             String   @id @default(uuid())
+  userId         String
+  origin         String
+  destination    String
+  departureDate  DateTime
+  returnDate     DateTime?
+  currency       String
+  targetPrice    Decimal?
+  notifyOnDrop   Boolean  @default(true)
+  priceHistories PriceHistory[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model PriceHistory {
+  id             String       @id @default(uuid())
+  trackedRouteId String
+  price          Decimal
+  currency       String
+  provider       String
+  observedAt     DateTime     @default(now())
+  trackedRoute   TrackedRoute @relation(fields: [trackedRouteId], references: [id], onDelete: Cascade)
+}
+
+model FavoriteRoute {
+  id          String   @id @default(uuid())
+  userId      String
+  origin      String
+  destination String
+  name        String?
+  createdAt   DateTime @default(now())
+
+  @@unique([userId, origin, destination])
+}
+
+model SearchAnalytics {
+  id             String   @id @default(uuid())
+  origin         String
+  destination    String
+  provider       String
+  resultCount    Int
+  latencyMs      Int
+  cacheHit       Boolean
+  searchedAt     DateTime @default(now())
+}
+
+
+model BookingPassenger {
+  id                    String   @id @default(uuid())
+  bookingId             String
+  firstName             String
+  lastName              String
+  dateOfBirth           DateTime
+  gender                String?
+  nationality           String
+  passportNumber        String?
+  passportExpiry        DateTime?
+  visaDetails           Json?
+  passengerType         String
+  emergencyContact      Json?
+  frequentFlyerNumber   String?
+  mealPreference        String?
+  medicalAssistance     String?
+  wheelchairAssistance  Boolean  @default(false)
+  specialRequests       String?
+  booking               Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  seatAssignments       SeatAssignment[]
+  baggageSelections     BaggageSelection[]
+  ancillarySelections   AncillarySelection[]
+  tickets               Ticket[]
+  boardingPasses        BoardingPass[]
+}
+
+model SeatAssignment {
+  id             String   @id @default(uuid())
+  bookingId      String
+  passengerId    String
+  segmentRef     String
+  seatNumber     String
+  cabin          String
+  price          Decimal  @default(0)
+  currency       String
+  characteristics String[]
+  heldUntil      DateTime?
+  confirmedAt    DateTime?
+  booking        Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  passenger      BookingPassenger @relation(fields: [passengerId], references: [id], onDelete: Cascade)
+}
+
+model BaggageSelection {
+  id          String   @id @default(uuid())
+  bookingId   String
+  passengerId String
+  type        String
+  quantity    Int
+  weightKg    Int?
+  price       Decimal  @default(0)
+  currency    String
+  booking     Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  passenger   BookingPassenger @relation(fields: [passengerId], references: [id], onDelete: Cascade)
+}
+
+model AncillarySelection {
+  id          String   @id @default(uuid())
+  bookingId   String
+  passengerId String?
+  code        String
+  name        String
+  price       Decimal  @default(0)
+  currency    String
+  metadata    Json?
+  booking     Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  passenger   BookingPassenger? @relation(fields: [passengerId], references: [id], onDelete: SetNull)
+}
+
+model BookingTimeline {
+  id        String   @id @default(uuid())
+  bookingId String
+  event     String
+  message   String
+  metadata  Json?
+  createdAt DateTime @default(now())
+  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+}
+
+model BookingStatusHistory {
+  id        String        @id @default(uuid())
+  bookingId String
+  fromStatus BookingStatus?
+  toStatus   BookingStatus
+  reason    String?
+  createdAt DateTime      @default(now())
+  booking   Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+}
+
+model BookingAuditLog {
+  id        String   @id @default(uuid())
+  bookingId String
+  actorId   String?
+  action    String
+  metadata  Json?
+  createdAt DateTime @default(now())
+  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+}
+
+model Pnr {
+  id        String   @id @default(uuid())
+  bookingId String   @unique
+  code      String   @unique
+  provider  String
+  createdAt DateTime @default(now())
+  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+}
+
+model Ticket {
+  id          String   @id @default(uuid())
+  bookingId   String
+  passengerId String
+  ticketNumber String  @unique
+  eticketPdfBase64 String
+  issuedAt    DateTime @default(now())
+  booking     Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  passenger   BookingPassenger @relation(fields: [passengerId], references: [id], onDelete: Cascade)
+}
+
+model BoardingPass {
+  id          String   @id @default(uuid())
+  bookingId   String
+  passengerId String
+  segmentRef  String
+  seatNumber  String?
+  sequenceNumber String
+  qrPayload   String
+  pdfBase64   String
+  createdAt   DateTime @default(now())
+  booking     Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  passenger   BookingPassenger @relation(fields: [passengerId], references: [id], onDelete: Cascade)
+}

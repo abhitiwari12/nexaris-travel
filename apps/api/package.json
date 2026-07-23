@@ -1,0 +1,47 @@
+{
+  "name": "@nexaris/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nest start --watch",
+    "build": "nest build",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run src --passWithNoTests"
+  },
+  "dependencies": {
+    "@nestjs/common": "latest",
+    "@nestjs/config": "latest",
+    "@nestjs/core": "latest",
+    "@nestjs/jwt": "latest",
+    "@nestjs/passport": "latest",
+    "@nestjs/platform-express": "latest",
+    "@nestjs/swagger": "latest",
+    "@nestjs/throttler": "latest",
+    "@nexaris/database": "workspace:*",
+    "@nexaris/shared": "workspace:*",
+    "bcryptjs": "latest",
+    "class-transformer": "latest",
+    "class-validator": "latest",
+    "helmet": "latest",
+    "passport": "latest",
+    "passport-google-oauth20": "latest",
+    "passport-jwt": "latest",
+    "reflect-metadata": "latest",
+    "rxjs": "latest",
+    "winston": "latest",
+    "zod": "latest",
+    "ioredis": "latest"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "latest",
+    "@types/bcryptjs": "latest",
+    "@types/passport-google-oauth20": "latest",
+    "@types/passport-jwt": "latest",
+    "supertest": "latest",
+    "typescript": "5.9.3",
+    "vitest": "latest",
+    "@types/express": "latest"
+  }
+}

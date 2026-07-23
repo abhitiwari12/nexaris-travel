@@ -1,0 +1,3 @@
+import { AuthCard } from '../../components/auth-card';
+import { AuthForm } from '../../components/auth-form';
+export default function RegisterPage() { return <AuthCard title="Create account" subtitle="Start booking smarter AI-powered journeys."><AuthForm action="/auth/register" cta="Create account" fields={[{ name: 'firstName', label: 'First name', placeholder: 'Nexa' }, { name: 'lastName', label: 'Last name', placeholder: 'Traveler' }, { name: 'email', label: 'Email', type: 'email', placeholder: 'you@example.com' }, { name: 'password', label: 'Password', type: 'password', placeholder: '12+ chars with symbols' }]} /></AuthCard>; }

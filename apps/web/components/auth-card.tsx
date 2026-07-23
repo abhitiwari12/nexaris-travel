@@ -1,0 +1,3 @@
+import Link from 'next/link';
+import type { PropsWithChildren } from 'react';
+export function AuthCard({ title, subtitle, children }: PropsWithChildren<{ title: string; subtitle: string }>) { return <main className="grid min-h-screen place-items-center bg-slate-950 px-6 py-12 text-white"><section className="glass w-full max-w-md rounded-[2rem] p-8"><Link className="text-sm font-black text-gold" href="/">NEXARIS TRAVEL AI</Link><h1 className="mt-6 text-4xl font-black tracking-[-.06em]">{title}</h1><p className="mt-3 text-white/60">{subtitle}</p><div className="mt-8">{children}</div></section></main>; }

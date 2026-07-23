@@ -1,0 +1,4 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+:root{color-scheme:light dark}body{@apply bg-slate-950 text-white antialiased} .glass{@apply border border-white/10 bg-white/10 shadow-2xl shadow-black/20 backdrop-blur-2xl}
